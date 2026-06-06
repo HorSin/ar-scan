@@ -134,7 +134,7 @@ AFRAME.registerComponent('video-carousel', {
     this.activeIndex = 0;
     this.found = false;
 
-    this.videos = [1, 2, 3, 4].map((i) => document.getElementById(`video${i}`));
+    this.videos = [1, 2, 3, 4, 5].map((i) => document.getElementById(`video${i}`));
     this.slots = Array.from(this.el.querySelectorAll('.carousel-slot'));
 
     // Target transforms keyed by signed offset from the active slot (-2..+2).
