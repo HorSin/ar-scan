@@ -147,7 +147,7 @@ AFRAME.registerComponent('video-carousel', {
     const FLOAT_Y = 1.5; // lifts the carousel clear above the (portrait) target image plane (~0.75 half-height + larger plane half-height of 0.75)
     const FLOAT_Z = 0.3; // brings the carousel forward, toward the camera
     this.slotConfigs = {
-      0: { position: [0, FLOAT_Y, 0.05 + FLOAT_Z], rotationY: 0, scale: 2, opacity: 1 },
+      0: { position: [0, FLOAT_Y, 0.05 + FLOAT_Z], rotationY: 0, scale: 1, opacity: 1 },
       1: { position: [0.55, FLOAT_Y, 0 + FLOAT_Z], rotationY: -35 * DEG, scale: 0.7, opacity: 0.55 },
       [-1]: { position: [-0.55, FLOAT_Y, 0 + FLOAT_Z], rotationY: 35 * DEG, scale: 0.7, opacity: 0.55 },
       2: { position: [0.85, FLOAT_Y, -0.1 + FLOAT_Z], rotationY: -50 * DEG, scale: 0.5, opacity: 0.25 },
