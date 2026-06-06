@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Must happen synchronously inside this user-gesture handler so that
     // play()/pause()/unmute() calls later in the AR session are not blocked
     // by mobile autoplay policies.
-    ['video1', 'video2', 'video3', 'video4'].forEach((id) => {
+    ['video1', 'video2', 'video3', 'video4', 'video5'].forEach((id) => {
       const video = document.getElementById(id);
       const playPromise = video.play();
       if (playPromise && typeof playPromise.then === 'function') {
