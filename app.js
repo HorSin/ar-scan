@@ -104,7 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
     sceneEl.systems['mindar-image-system'].start();
   });
 
-  sceneEl.addEventListener('camera-error', showPermissionError);
+  // MindAR emits "arError" with { error: 'VIDEO_FAIL' } when getUserMedia
+  // fails (permission denied, no camera, etc.) — it never emits "camera-error".
+  sceneEl.addEventListener('arError', (e) => {
+    if (e.detail && e.detail.error === 'VIDEO_FAIL') showPermissionError();
+  });
 
   document.addEventListener('ar-target-found', () => {
     hideOnboarding();
