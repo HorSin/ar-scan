@@ -141,12 +141,13 @@ AFRAME.registerComponent('video-carousel', {
     // +2 and -2 share the same look (they sit directly behind ±1) but mirrored.
     const DEG = Math.PI / 180;
     const FLOAT_Y = 0.9; // lifts the carousel clear above the target image plane (~0.33 half-height + plane half-height)
+    const FLOAT_Z = 0.3; // brings the carousel forward, toward the camera
     this.slotConfigs = {
-      0: { position: [0, FLOAT_Y, 0.05], rotationY: 0, scale: 1, opacity: 1 },
-      1: { position: [0.55, FLOAT_Y, 0], rotationY: -35 * DEG, scale: 0.7, opacity: 0.55 },
-      [-1]: { position: [-0.55, FLOAT_Y, 0], rotationY: 35 * DEG, scale: 0.7, opacity: 0.55 },
-      2: { position: [0.85, FLOAT_Y, -0.1], rotationY: -50 * DEG, scale: 0.5, opacity: 0.25 },
-      [-2]: { position: [-0.85, FLOAT_Y, -0.1], rotationY: 50 * DEG, scale: 0.5, opacity: 0.25 },
+      0: { position: [0, FLOAT_Y, 0.05 + FLOAT_Z], rotationY: 0, scale: 1, opacity: 1 },
+      1: { position: [0.55, FLOAT_Y, 0 + FLOAT_Z], rotationY: -35 * DEG, scale: 0.7, opacity: 0.55 },
+      [-1]: { position: [-0.55, FLOAT_Y, 0 + FLOAT_Z], rotationY: 35 * DEG, scale: 0.7, opacity: 0.55 },
+      2: { position: [0.85, FLOAT_Y, -0.1 + FLOAT_Z], rotationY: -50 * DEG, scale: 0.5, opacity: 0.25 },
+      [-2]: { position: [-0.85, FLOAT_Y, -0.1 + FLOAT_Z], rotationY: 50 * DEG, scale: 0.5, opacity: 0.25 },
     };
 
     this._targets = this.slots.map(() => null);
