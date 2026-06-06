@@ -140,7 +140,7 @@ AFRAME.registerComponent('video-carousel', {
     // Target transforms keyed by signed offset from the active slot (-2..+2).
     // +2 and -2 share the same look (they sit directly behind ±1) but mirrored.
     const DEG = Math.PI / 180;
-    const FLOAT_Y = 0.7; // lifts the carousel above the target image plane
+    const FLOAT_Y = 0.9; // lifts the carousel clear above the target image plane (~0.33 half-height + plane half-height)
     this.slotConfigs = {
       0: { position: [0, FLOAT_Y, 0.05], rotationY: 0, scale: 1, opacity: 1 },
       1: { position: [0.55, FLOAT_Y, 0], rotationY: -35 * DEG, scale: 0.7, opacity: 0.55 },
