@@ -101,6 +101,36 @@ a-scene {
   color: rgba(255, 255, 255, 0.75);
 }
 
+/* Exit button */
+#exit-btn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+#exit-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+#exit-btn:active {
+  transform: scale(0.95);
+}
+
 /* Target-lost hint banner */
 #hint {
   position: fixed;

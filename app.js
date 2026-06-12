@@ -1,4 +1,11 @@
 // ---------------------------------------------------------------------------
+// bfcache guard — iOS restores pages from the back-forward cache with stale
+// MindAR/WebGL state, causing a frozen screen. Force a clean reload instead.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) window.location.reload();
+});
+
+// ---------------------------------------------------------------------------
 // i18n
 // ---------------------------------------------------------------------------
 const translations = {
@@ -60,6 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let started = false;
   let foundOnce = false;
+
+  document.getElementById('exit-btn').addEventListener('click', () => {
+    // window.close() only works if the tab was opened by script (e.g. QR scan
+    // on iOS opens a new tab), so try it first and fall back to a blank page.
+    window.close();
+    setTimeout(() => { window.location.href = 'about:blank'; }, 300);
+  });
 
   function setStatus(text) {
     statusEl.hidden = !text;

@@ -3,8 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <!-- Prevent browsers (especially iOS Safari) from serving a stale cached page -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>AR Experience</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=2" />
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
@@ -21,6 +25,9 @@
       <p id="onboarding-status" class="status" hidden></p>
     </div>
   </div>
+
+  <!-- Exit button -->
+  <button id="exit-btn" aria-label="Close" title="Close">✕</button>
 
   <!-- Persistent "target lost" hint banner -->
   <div id="hint" hidden>
@@ -54,6 +61,6 @@
     </a-entity>
   </a-scene>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2"></script>
 </body>
 </html>
