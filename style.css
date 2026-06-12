@@ -179,9 +179,16 @@ a-scene {
 
 #scan-frame {
   position: relative;
-  width: min(60vw, 220px);
-  aspect-ratio: 1;
+  width: min(60vw, 240px);
   overflow: hidden;
+  border-radius: 4px;
+}
+
+#scan-target-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.85;
 }
 
 .scan-corner {
