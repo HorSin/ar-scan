@@ -103,55 +103,100 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // On-screen debug log — visible on device without needing desktop DevTools.
+  const debugEl = document.createElement('div');
+  debugEl.style.cssText = [
+    'position:fixed', 'bottom:80px', 'left:10px', 'right:10px', 'z-index:9999',
+    'background:rgba(0,0,0,0.75)', 'color:#0f0', 'font:11px/1.5 monospace',
+    'padding:8px', 'border-radius:8px', 'max-height:160px', 'overflow-y:auto',
+    'pointer-events:none', 'white-space:pre-wrap', 'word-break:break-all',
+  ].join(';');
+  document.body.appendChild(debugEl);
+  function dbg(msg) {
+    const ts = new Date().toISOString().slice(11, 23);
+    debugEl.textContent += `[${ts}] ${msg}\n`;
+    debugEl.scrollTop = debugEl.scrollHeight;
+  }
+
+  // Capture uncaught errors so they appear on-screen.
+  window.addEventListener('error', (e) => dbg(`UNCAUGHT: ${e.message}`));
+  window.addEventListener('unhandledrejection', (e) => dbg(`REJECT: ${e.reason}`));
+
   startBtn.addEventListener('click', async () => {
     if (started) return;
     started = true;
     startBtn.disabled = true;
+    dbg('Button clicked');
 
-    // Phase 1: request camera permission — user must approve the browser prompt.
+    // Phase 1: request camera permission.
     setStatus('📷 Please allow camera access…');
+    dbg('Requesting getUserMedia…');
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
         audio: false,
       });
+      dbg('Camera granted — stopping pre-warm tracks');
       stream.getTracks().forEach((track) => track.stop());
     } catch (err) {
+      dbg(`getUserMedia FAILED: ${err.name} — ${err.message}`);
       showPermissionError();
       return;
     }
 
-    // Phase 2: camera granted — now initialise the AR engine.
+    // Phase 2: camera granted — initialise the AR engine.
     setStatus('⏳ Loading AR engine…');
 
     // Unlock iOS media engine for video elements inside the gesture handler.
     ['video1', 'video2', 'video3', 'video4', 'video5'].forEach((id) => {
       const video = document.getElementById(id);
-      const playPromise = video.play();
-      if (playPromise && typeof playPromise.then === 'function') {
-        playPromise.then(() => video.pause()).catch(() => {});
-      } else {
-        video.pause();
-      }
+      const p = video.play();
+      if (p && typeof p.then === 'function') p.then(() => video.pause()).catch(() => {});
+      else video.pause();
     });
 
-    // Wait for iOS to fully release the pre-warm camera track before MindAR
-    // opens its own stream. Without this delay MindAR's getUserMedia silently
-    // fails because the hardware is still marked as in-use.
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Give iOS time to fully release the pre-warm camera track.
+    dbg('Waiting 1200 ms for iOS camera release…');
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    sceneEl.systems['mindar-image-system'].start();
+    // Ensure the A-Frame scene and MindAR system are ready.
+    const mindSystem = sceneEl.systems['mindar-image-system'];
+    if (!mindSystem) {
+      dbg('ERROR: mindar-image-system not found on scene');
+      showPermissionError();
+      return;
+    }
+    dbg('Calling MindAR start()…');
+
+    try {
+      mindSystem.start();
+    } catch (err) {
+      dbg(`start() threw: ${err.name} — ${err.message}`);
+      showPermissionError();
+      return;
+    }
+
+    dbg('start() returned — waiting for arReady…');
 
     // Phase 3: AR ready — switch to scanning message.
-    sceneEl.addEventListener('arReady', () => setStatus(t.scanning), { once: true });
+    sceneEl.addEventListener('arReady', () => {
+      dbg('arReady fired ✓');
+      setStatus(t.scanning);
+    }, { once: true });
 
-    // Fallback: if arReady never fires within 20 s, surface an error.
+    // Fallback: surface an error if arReady never fires within 25 s.
     const loadTimeout = setTimeout(() => {
-      if (started) showPermissionError();
-    }, 20000);
+      if (started) {
+        dbg('TIMEOUT: arReady never fired after 25 s');
+        showPermissionError();
+      }
+    }, 25000);
     sceneEl.addEventListener('arReady', () => clearTimeout(loadTimeout), { once: true });
-    sceneEl.addEventListener('arError', () => clearTimeout(loadTimeout), { once: true });
+    sceneEl.addEventListener('arError', (e) => {
+      dbg(`arError: ${JSON.stringify(e.detail)}`);
+      clearTimeout(loadTimeout);
+    }, { once: true });
   });
 
   // Catch any MindAR error — not just VIDEO_FAIL — so the page never freezes.
