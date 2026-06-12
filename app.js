@@ -80,16 +80,42 @@ document.addEventListener('DOMContentLoaded', () => {
     onboardingEl.classList.add('hidden');
   }
 
-  startBtn.addEventListener('click', () => {
+  // Guard: getUserMedia unavailable in WKWebView, non-HTTPS, or old browsers.
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    messageEl.innerHTML =
+      'Camera not supported in this browser.<br>' +
+      'Please open this link in <strong>Safari</strong>.';
+    startBtn.style.display = 'none';
+    return;
+  }
+
+  startBtn.addEventListener('click', async () => {
     if (started) return;
     started = true;
     startBtn.disabled = true;
     setStatus(t.scanning);
 
+    // --- Pre-warm getUserMedia inside the gesture handler ---------------
+    // iOS Safari only shows the permission prompt when getUserMedia is called
+    // synchronously within a trusted user gesture. MindAR's start() is async
+    // (fetches .mind file, spins up WASM worker) so by the time it calls
+    // getUserMedia the gesture token is gone and the prompt never fires.
+    // Calling it here first grants permission; MindAR's subsequent call
+    // succeeds silently against the already-granted permission.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
+      });
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (err) {
+      showPermissionError();
+      return;
+    }
+
     // --- iOS / Safari media-engine "unlock" -----------------------------
-    // Must happen synchronously inside this user-gesture handler so that
-    // play()/pause()/unmute() calls later in the AR session are not blocked
-    // by mobile autoplay policies.
+    // Must happen inside this user-gesture handler so that play()/unmute()
+    // calls later in the AR session are not blocked by autoplay policies.
     ['video1', 'video2', 'video3', 'video4', 'video5'].forEach((id) => {
       const video = document.getElementById(id);
       const playPromise = video.play();
@@ -100,8 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // --- Start MindAR (requests camera via getUserMedia) ----------------
+    // --- Start MindAR (camera permission already granted above) ---------
     sceneEl.systems['mindar-image-system'].start();
+
+    // Fallback: if neither arReady nor arError fires within 15 s, surface
+    // an error instead of leaving the user on a frozen "scanning…" screen.
+    const permissionTimeout = setTimeout(() => {
+      if (started) showPermissionError();
+    }, 15000);
+    sceneEl.addEventListener('arReady', () => clearTimeout(permissionTimeout), { once: true });
+    sceneEl.addEventListener('arError', () => clearTimeout(permissionTimeout), { once: true });
   });
 
   // MindAR emits "arError" with { error: 'VIDEO_FAIL' } when getUserMedia
