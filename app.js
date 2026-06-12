@@ -296,7 +296,7 @@ AFRAME.registerComponent('video-carousel', {
   tick: function (time, deltaMs) {
     if (!this._targets) return;
     const dt = deltaMs || 16;
-    const k = 1 - Math.exp(-dt / 220); // slower easing damps pose-estimation jitter
+    const k = 1 - Math.exp(-dt / 600); // heavy damping suppresses pose-estimation jitter/vibration
 
     this.slots.forEach((slotEl, i) => {
       const target = this._targets[i];
