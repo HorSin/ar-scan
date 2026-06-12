@@ -14,6 +14,7 @@ const translations = {
     instructions: 'Grant camera permissions and point your camera at the image to see the magic!',
     start: 'Start Camera',
     scanning: 'Looking for the image…',
+    scanInstruction: 'Point your camera at the target image',
     lost: 'Point your camera at the image',
     permissionDenied: 'Camera access was denied. Please enable camera permissions in your browser settings and try again.',
     retry: 'Try Again',
@@ -23,6 +24,7 @@ const translations = {
     instructions: '请允许使用摄像头，并将摄像头对准图片，见证奇迹的发生！',
     start: '启动摄像头',
     scanning: '正在寻找图片…',
+    scanInstruction: '请将摄像头对准目标图片',
     lost: '请将摄像头对准图片',
     permissionDenied: '摄像头访问被拒绝。请在浏览器设置中启用摄像头权限后重试。',
     retry: '重试',
@@ -32,6 +34,7 @@ const translations = {
     instructions: '¡Concede permiso para usar la cámara y apúntala a la imagen para ver la magia!',
     start: 'Iniciar cámara',
     scanning: 'Buscando la imagen…',
+    scanInstruction: 'Apunta la cámara hacia la imagen objetivo',
     lost: 'Apunta la cámara hacia la imagen',
     permissionDenied: 'Se denegó el acceso a la cámara. Habilita los permisos de la cámara en la configuración de tu navegador e inténtalo de nuevo.',
     retry: 'Reintentar',
@@ -64,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusEl = document.getElementById('onboarding-status');
   const startBtn = document.getElementById('start-btn');
   const hintEl = document.getElementById('hint');
+  const scanningOverlayEl = document.getElementById('scanning-overlay');
 
   let started = false;
   let foundOnce = false;
@@ -147,8 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Phase 3: AR ready — switch to scanning message.
-    sceneEl.addEventListener('arReady', () => setStatus(t.scanning), { once: true });
+    // Phase 3: AR ready — hide onboarding card and show scanning instructions.
+    sceneEl.addEventListener('arReady', () => {
+      setStatus('');
+      onboardingEl.classList.add('hidden');
+      scanningOverlayEl.hidden = false;
+    }, { once: true });
 
     // Fallback: surface an error if arReady never fires within 25 s.
     const loadTimeout = setTimeout(() => {
@@ -165,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('ar-target-found', () => {
     hideOnboarding();
+    scanningOverlayEl.hidden = true;
     hintEl.classList.remove('fade-out');
     hintEl.hidden = true;
   });

@@ -29,6 +29,18 @@
   <!-- Exit button -->
   <button id="exit-btn" aria-label="Close" title="Close">✕</button>
 
+  <!-- Scanning instruction overlay (shown after camera/AR is ready) -->
+  <div id="scanning-overlay" hidden>
+    <div id="scan-frame">
+      <div class="scan-corner tl"></div>
+      <div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div>
+      <div class="scan-corner br"></div>
+      <div class="scan-line"></div>
+    </div>
+    <p id="scanning-label" data-i18n="scanInstruction">Point your camera at the target image</p>
+  </div>
+
   <!-- Persistent "target lost" hint banner -->
   <div id="hint" hidden>
     <span data-i18n="lost">Point your camera at the image</span>
