@@ -209,6 +209,11 @@ AFRAME.registerComponent('video-carousel', {
 
     this._targets = this.slots.map(() => null);
 
+    // Smoothed world transform for the anchor entity itself — prevents the
+    // "lever arm" amplification of pose-estimation jitter on floating elements.
+    this._anchorPos = null;
+    this._anchorQuat = null;
+
     this.onTargetFound = this.onTargetFound.bind(this);
     this.onTargetLost = this.onTargetLost.bind(this);
     this.onTouchStart = this.onTouchStart.bind(this);
@@ -234,6 +239,10 @@ AFRAME.registerComponent('video-carousel', {
 
   onTargetFound: function () {
     this.found = true;
+    // Reset smoothed anchor so it snaps to the initial pose instead of lerping
+    // in from whatever stale position was last set.
+    this._anchorPos = null;
+    this._anchorQuat = null;
     document.dispatchEvent(new CustomEvent('ar-target-found'));
     this.playActiveVideo();
   },
@@ -296,8 +305,29 @@ AFRAME.registerComponent('video-carousel', {
   tick: function (time, deltaMs) {
     if (!this._targets) return;
     const dt = deltaMs || 16;
-    const k = 1 - Math.exp(-dt / 600); // heavy damping suppresses pose-estimation jitter/vibration
 
+    // --- Step 1: smooth the anchor entity itself in world space.
+    // MindAR writes a raw jittery pose to this.el.object3D each system-tick.
+    // We read that raw pose, lerp our smoothed copy toward it, then write the
+    // smoothed pose back. This eliminates the "lever arm" effect that makes
+    // elements floating above the anchor shake far more than the anchor itself.
+    if (this.found) {
+      const anchorObj = this.el.object3D;
+      if (!this._anchorPos) {
+        // First frame after target found — snap immediately, no lerp.
+        this._anchorPos = anchorObj.position.clone();
+        this._anchorQuat = anchorObj.quaternion.clone();
+      } else {
+        const ka = 1 - Math.exp(-dt / 80); // responsive to real movement
+        this._anchorPos.lerp(anchorObj.position, ka);
+        this._anchorQuat.slerp(anchorObj.quaternion, ka);
+      }
+      anchorObj.position.copy(this._anchorPos);
+      anchorObj.quaternion.copy(this._anchorQuat);
+    }
+
+    // --- Step 2: lerp each slot to its layout target (carousel animation).
+    const k = 1 - Math.exp(-dt / 220);
     this.slots.forEach((slotEl, i) => {
       const target = this._targets[i];
       if (!target) return;
