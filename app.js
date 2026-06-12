@@ -136,6 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Wait for iOS to fully release the pre-warm camera track before MindAR
+    // opens its own stream. Without this delay MindAR's getUserMedia silently
+    // fails because the hardware is still marked as in-use.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     sceneEl.systems['mindar-image-system'].start();
 
     // Phase 3: AR ready — switch to scanning message.
@@ -149,10 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sceneEl.addEventListener('arError', () => clearTimeout(loadTimeout), { once: true });
   });
 
-  // MindAR emits "arError" with { error: 'VIDEO_FAIL' } when getUserMedia
-  // fails (permission denied, no camera, etc.) — it never emits "camera-error".
-  sceneEl.addEventListener('arError', (e) => {
-    if (e.detail && e.detail.error === 'VIDEO_FAIL') showPermissionError();
+  // Catch any MindAR error — not just VIDEO_FAIL — so the page never freezes.
+  sceneEl.addEventListener('arError', () => {
+    showPermissionError();
   });
 
   document.addEventListener('ar-target-found', () => {
